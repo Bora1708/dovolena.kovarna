@@ -16,6 +16,8 @@ DB_PATH = settings.DB_PATH
 #
 @contextmanager
 def open_conn() -> Iterator[sqlite3.Connection]:
+    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+
     conn = None
     try:
         conn = sqlite3.connect(
