@@ -3,11 +3,12 @@
 import sqlite3
 from contextlib import contextmanager
 from typing import Iterator
+from app.core.config import settings
 
 #
 # KONFIGURACE DATABÁZE
 #
-DB_PATH = "app/data/vacation.db"
+DB_PATH = settings.DB_PATH
 
 
 #
