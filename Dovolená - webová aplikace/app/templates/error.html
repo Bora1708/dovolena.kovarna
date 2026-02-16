@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Chyba {{ status_code }}{% endblock %}
+
+{% block nav %}
+    {% endblock %}
+
+{% block content %}
+    <div class="card" style="text-align: center;">
+        <h2>Chyba {{ status_code }}</h2>
+        
+        <p class="status-rejected" style="font-size: 1.2em; margin-bottom: 20px;">
+            <strong>Popis chyby:</strong> {{ detail | replace('_', ' ') }} 
+        </p>
+        
+        <div class="actions" style="margin-top: 30px; display: flex; justify-content: center; gap: 20px;">
+            
+            {% if is_super_admin %}
+                {% set target_url = super_admin_url %}
+            {% elif is_admin %}
+                {% set target_url = admin_url %}
+            {% else %}
+                {% set target_url = employee_url %}
+            {% endif %}
+
+            <button 
+                onclick="window.location.href='{{ target_url }}'" 
+                class="approve" 
+                style="padding: 10px 20px; cursor: pointer;"
+            >
+                Zpět
+            </button>
+            
+        </div>
+        
+    </div>
+{% endblock %}

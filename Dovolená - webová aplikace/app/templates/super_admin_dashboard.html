@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Super Admin Dashboard{% endblock %}
+
+{% block main_link %}
+    <a href="/super_admin">Super Admin Dashboard</a>
+{% endblock %}
+
+{% block content %}
+
+    <div class="card-group" style="margin-top: 20px;">
+        
+        <div class="card profile-card"> <div class="profile-header">
+            <img src="/static/images/admin_picture.png" alt="Admin fotka" class="profile-img">
+            <h2>Vítejte, {{ user_name }}</h2>
+        </div>
+        <p class="dashboard-title"> Super Admin Dashboard</p>
+        <hr> <p>E-mail: {{ admin_email }}</p>
+        <p class="role-info"> <strong style="color: #A88BFB;">Role: Super Admin</strong> </p>
+    </div>
+        
+        <div class="card" style="flex: 1 1 calc(50% - 10px);">
+            <h3>Vytvořit Nového Uživatele a Nastavit Roli</h3>
+            <form method="POST" action="/super_admin/create_user_with_role">
+                
+                <label for="name">Jméno a Příjmení:</label>
+                <input type="text" id="name" name="name" required><br>
+
+                <label for="email">E-mail (Login):</label>
+                <input type="email" id="email" name="email" required><br>
+
+                <label for="password">Heslo:</label>
+                <input type="password" id="password" name="password" required><br>
+
+                <label for="remaining_days">Zbývající dny dovolené (Dnů):</label>
+                <input type="number" id="remaining_days" name="remaining_days" value="20" min="0"><br>
+                
+                <label for="role_choice">Role uživatele:</label>
+                <select name="role_choice" id="role_choice" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                    <option value="1">1 - Employee</option>
+                    <option value="2">2 - Admin</option>
+                    <option value="3">3 - Super Admin</option>
+                </select>
+
+                <button type="submit" class="submit">Vytvořit Uživatele</button>
+            </form>
+        </div>
+
+    <div class="card table-card">
+        <h3>Přehled všech uživatelů a rolí</h3>
+        
+        <div class="table-responsive"> 
+            {% if users %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Jméno</th>
+                            <th>E-mail</th>
+                            <th>Aktuální Role</th>
+                            <th>Zbývá Dovolené</th>
+                            <th style="width: 250px;">Změna Oprávnění</th>
+                            <th>Smazat</th> </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.is_super_admin == 1 %}
+                                    <strong style="color: #A88BFB;">Super Admin</strong>
+                                {% elif user.is_admin == 1 %}
+                                    <strong style="color: #00A9B0;">Admin</strong>
+                                {% else %}
+                                    Employee
+                                {% endif %}
+                            </td>
+                            <td>{{ user.remaining_days }} dnů</td>
+                            
+                            <td>
+                                <form method="POST" action="/super_admin/update_role/{{ user.id }}" style="display:flex; gap: 5px; align-items:center;">
+                                    
+                                    <select name="role_choice" required style="padding: 5px; border-radius: 4px;">
+                                        
+                                        <option value="1" {% if user.is_admin == 0 and user.is_super_admin == 0 %}selected{% endif %}>1 - Employee</option>
+                                        
+                                        <option value="2" {% if user.is_admin == 1 and user.is_super_admin == 0 %}selected{% endif %}>2 - Admin</option>
+                                        
+                                        <option value="3" {% if user.is_super_admin == 1 %}selected{% endif %}>3 - Super Admin</option>
+                                        
+                                    </select>
+                                    
+                                    <button type="submit" class="approve" style="padding: 5px 10px;">Uložit Změnu</button>
+                                </form>
+                            </td>
+
+                            <td> {% if user.id != payload.get('id') %}
+                                    <form method="POST" action="/super_admin/delete_user/{{ user.id }}" 
+                                          style="display:inline;" 
+                                          onsubmit="return confirm('Opravdu chcete smazat uživatele {{ user.name }}? Tím se smažou i jeho žádosti o dovolenou.');">
+                                        
+                                        <button type="submit" class="reject" style="padding: 5px 10px;">Smazat</button>
+                                    </form>
+                                {% else %}
+                                    <span style="color: var(--color-text-muted); font-size: 0.9em;">(Sám sebe)</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>V systému nejsou žádní uživatelé k zobrazení.</p>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

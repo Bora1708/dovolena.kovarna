@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Upravit Žádost #{{ request_data.id }}{% endblock %}
+
+{% block nav %}
+    <div class="nav">
+        <a href="/employee/profile">Můj Profil</a>
+        <a href="/logout">Odhlásit se</a>
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div class="full-page-center">
+        <div class="card centered-card">
+            <h2>Upravit Žádost o Dovolenou #{{ request_data.id }}</h2>
+            {% set error_msg = request.query_params.get('error') %}
+            {% if error_msg %}
+                <div class="alert error"><strong>CHYBA:</strong> {{ error_msg | replace('_', ' ') }}</div>
+            {% endif %}
+            <p>Původní termín: {{ request_data.start_date | date_cz }} – {{ request_data.end_date | date_cz }} ({{ request_data.total_days }} dní)</p>
+            <p>Zbývající dny: {{ remaining_days }} dnů.</p>
+            <h3>Nový Termín</h3>
+            <form method="POST" action="/employee/edit/{{ request_data.id }}">
+                <div>
+                    <label for="start_date">Datum začátku:</label>
+                    <input type="date" id="start_date" name="start_date" value="{{ request_data.start_date }}" required>
+                </div>
+                <br>
+                <div>
+                    <label for="end_date">Datum konce:</label>
+                    <input type="date" id="end_date" name="end_date" value="{{ request_data.end_date }}" required>
+                </div>
+                <br>
+                <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                    
+                    <button type="submit" class="submit">Uložit Upravenou Žádost</button>
+
+                    <a href="/employee/profile" class="btn submit">Zpět na Profil</a>
+                    
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

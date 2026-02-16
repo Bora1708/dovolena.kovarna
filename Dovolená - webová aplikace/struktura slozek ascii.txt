@@ -1,0 +1,55 @@
+app/
+├── __pycache__
+├── api/
+│   ├── __pycache__
+│   ├── routers/
+│   │   ├── __pycache__
+│   │   ├── __init__.py
+│   │   ├── admin.py
+│   │   ├── auth.py
+│   │   ├── employees.py
+│   │   └── super_admin.py
+│   ├── __init__.py
+│   ├── dependencies.py
+│   └── error_handlers.py
+├── core/
+│   ├── __pycache__.py
+│   ├── __init__.py
+│   ├── config.py
+│   └── security.py
+├── data/
+│   ├── vacation.db
+│   └── vacation.sqbpro
+├── models/
+│   ├── __pycache__.py
+│   ├── __init__.py
+│   ├── db.py
+│   └── schemas.py
+├── repositories/
+│   ├── __pycache__
+│   ├── __init__.py
+│   ├── user_repo.py
+│   └── vacation_repo.py
+├── services/
+│   ├── __pycache__
+│   ├── __init__.py
+│   ├── user_service.py
+│   └── vacation_service.py
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── images/
+│       ├── admin_picture.png
+│       └── employee_picture.png
+├── templates/
+│   ├── admin_dashboard.html
+│   ├── base.html
+│   ├── edit_vacation.html
+│   ├── error.html
+│   ├── login.html
+│   ├── profile.html
+│   └── super_admin_dashboard.html
+├── utils/
+│   ├── __pycache__
+│   └── jinja_filters.py
+└── main.py

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Můj Profil | Systém Dovolených{% endblock %}
+
+{% block main_link %}
+    <a href="/employee/profile" style="margin-right: 20px;">Můj Profil</a>
+{% endblock %}
+
+{% block content %}
+
+    <div class="card-group" style="margin-top: 20px;">
+        
+        <div class="card profile-card"> <div class="profile-header">
+            <img src="/static/images/employee_picture.png" alt="Employee fotka" class="profile-img">
+            <h2>Vítejte, {{ user.name }}</h2>
+        </div>
+        <p class="dashboard-title"> Zaměstnanec</p>
+        <hr> <p>E-mail: {{ user.email }}</p>
+        <h3>Stav Dovolené</h3>
+            <p>Zbývající dny dovolené: {{ user.remaining_days }} dnů.</p>
+    </div>
+
+        <div class="card">
+            <h3>Podat Novou Žádost</h3>
+            <form method="POST" action="/employee/request_vacation">
+                <div>
+                    <label for="start_date">Datum začátku (včetně):</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+                <br>
+                <div>
+                    <label for="end_date">Datum konce (včetně):</label>
+                    <input type="date" id="end_date" name="end_date" required>
+                </div>
+                <br>
+                <button type="submit">Odeslat žádost</button>
+            </form>
+        </div>
+    
+    </div> 
+    
+    <div class="card">
+        <h3>Historie Žádostí</h3>
+        
+        <div class="table-responsive">
+            {% if history %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Od</th>
+                            <th>Do</th>
+                            <th>Dny</th>
+                            <th>Stav</th>
+                            <th>Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in history %}
+                        <tr>
+                            <td>{{ req.start_date | date_cz }}</td>
+                            <td>{{ req.end_date | date_cz }}</td>
+                            <td>{{ req.total_days }}</td>
+                            <td>
+                                {% if req.status == 'Approved' %}
+                                    <strong class="status-approved">Schváleno</strong>
+                                {% elif req.status == 'Rejected' %}
+                                    <strong class="status-rejected">Zamítnuto</strong>
+                                {% else %}
+                                    <strong class="status-pending">Čeká se</strong>
+                                {% endif %}
+                            </td>
+                            <td> 
+                                {% if req.status == 'Pending' %}
+                                    <a href="/employee/edit/{{ req.id }}" 
+                                       class="btn" 
+                                       style="padding: 5px 10px; font-size: 0.9em; text-decoration: none;"
+                                    >Upravit</a>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Zatím nemáte žádné podané žádosti o dovolenou.</p>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
