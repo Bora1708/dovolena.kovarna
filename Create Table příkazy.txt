@@ -1,0 +1,21 @@
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    hashed_password TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    remaining_days INTEGER NOT NULL,
+    profile_picture_path TEXT NULL, 
+    name TEXT NOT NULL DEFAULT 'Uživatel', 
+    is_super_admin INTEGER DEFAULT 0
+);
+
+CREATE TABLE vacations (
+    id INTEGER PRIMARY KEY,
+    employee_id INTEGER NOT NULL,
+    start_date TEXT NOT NULL,
+    end_date TEXT NOT NULL,
+    total_days INTEGER NOT NULL,
+    status TEXT NOT NULL DEFAULT 'Pending',
+    submitted_at TEXT NOT NULL,
+    FOREIGN KEY (employee_id) REFERENCES users (id)
+);

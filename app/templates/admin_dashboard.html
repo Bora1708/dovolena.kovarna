@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard | Systém Dovolených{% endblock %}
+
+{% block main_link %}
+    <a href="/admin" style="margin-right: 20px;">Dashboard</a>
+{% endblock %}
+
+{% block content %}
+    
+    <div class="card-group" style="margin-top: 20px;">
+        
+        <div class="card profile-card"> <div class="profile-header">
+            <img src="/static/images/admin_picture.png" alt="Admin fotka" class="profile-img">
+            <h2>Vítejte, {{ user_name }}</h2>
+        </div>
+        <p class="dashboard-title"> Admin Dashboard</p>
+        <hr> <p>E-mail: {{ user_email }}</p>
+        <p class="role-info">Role: Admin</p>
+    </div>
+        
+        <div class="card table-card">
+            <h3>Vytvořit Nového Zaměstnance</h3>
+            <form method="POST" action="/admin/create_employee" class="create-employee-form">
+                <label for="name">Jméno a Příjmení:</label>
+                <input type="text" id="name" name="name" required><br>
+
+                <label for="email">E-mail (Login):</label>
+                <input type="email" id="email" name="email" required><br>
+
+                <label for="password">Heslo:</label>
+                <input type="password" id="password" name="password" required><br>
+
+                <label for="remaining_days">Zbývající dny dovolené (volitelné):</label>
+                <input type="number" id="remaining_days" name="remaining_days" value="20" min="0"><br>
+
+                <button type="submit" class="submit">Vytvořit Zaměstnance</button>
+            </form>
+        </div>
+
+        <div class="card table-card">
+            <h3>Čekající Žádosti k Schválení</h3>
+            
+            <div class="table-responsive">
+                {% if pending_requests %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Jméno</th>
+                                <th>Od - Do</th>
+                                <th>Dny</th>
+                                <th>Akce</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in pending_requests %}
+                            <tr>
+                                <td>{{ req.id }}</td>
+                                <td>{{ req.name | default(req.email) }}</td> 
+                                <td>{{ req.start_date | date_cz }} - {{ req.end_date | date_cz }}</td>
+                                <td>{{ req.total_days }}</td>
+                                <td>
+                                    <form method="POST" action="/admin/process_request/{{ req.id }}" style="display:inline; margin-right: 5px;">
+                                        <input type="hidden" name="action" value="Approve">
+                                        <button type="submit" class="approve" style="padding: 5px 10px;">Schválit</button>
+                                    </form>
+                                    <form method="POST" action="/admin/process_request/{{ req.id }}" style="display:inline;">
+                                        <input type="hidden" name="action" value="Reject">
+                                        <button type="submit" class="reject" style="padding: 5px 10px;">Zamítnout</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>Žádné čekající žádosti k vyřízení.</p>
+                {% endif %}
+            </div>
+            </div>
+    </div>
+
+      <div class="card">
+            <h3>Nejbližší Schválené Dovolené</h3>
+            
+            <div class="table-responsive">
+                {% if upcoming_vacations %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Jméno</th>
+                                <th>Od</th>
+                                <th>Do</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for vac in upcoming_vacations %}
+                            <tr>
+                                <td>{{ vac.name }}</td>
+                                <td>{{ vac.start_date | date_cz }}</td> <td>{{ vac.end_date | date_cz }}</td>   </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>V blízké době nejsou naplánovány žádné schválené dovolené.</p>
+                {% endif %}
+            </div>
+        </div>
+    
+    <div class="card table-card">
+        <h3>Přehled Zůstatků Zaměstnanců</h3>
+        
+        <div class="table-responsive">
+            {% if employees %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Jméno</th>
+                            <th>Zbývá Dovolené</th>
+                            <th>Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for emp in employees %}
+                        <tr>
+                            <td>{{ emp.name }}</td>
+                            <td>{{ emp.remaining_days }} dnů</td>
+                            <td>
+                                <form method="POST" action="/admin/delete_user/{{ emp.id }}" style="display:inline;" onsubmit="return confirm('Opravdu chcete smazat uživatele {{ emp.name }}? Tím se smažou i jeho žádosti o dovolenou.');">
+                                    <button type="submit" class="reject" style="padding: 5px 10px;">Smazat</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p>Žádní zaměstnanci k zobrazení.</p>
+            {% endif %}
+        </div>
+        </div>
+
+{% endblock %}

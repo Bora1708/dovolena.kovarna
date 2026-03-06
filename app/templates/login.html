@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Přihlášení{% endblock %}
+
+{% block nav %}{% endblock %}
+{% set hide_logout = True %}
+{% block content %}
+    
+    <div class="login-page">
+        <div class="login-container">
+            <h2>Přihlášení</h2>
+            
+            {% if error %}
+                <div class="alert error">
+                    {{ error | replace('_', ' ') }}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="/login">
+                <div>
+                    <label for="username">E-mail:</label>
+                    <input type="email" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="password">Heslo:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit">Přihlásit se</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
