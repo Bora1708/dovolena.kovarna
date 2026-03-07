@@ -50,7 +50,7 @@ body {
     max-height: 80px;
     width: auto;     
     display: block;
-    margin: 0 auto;   
+    margin: 0 auto 30px;   
     transition: transform 0.2s;
 }
 
