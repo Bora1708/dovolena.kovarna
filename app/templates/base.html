@@ -9,19 +9,22 @@
 <body>
     
     <div class="header">
-        <h1>
+        <div class="logo-container">
+            {% set home_url = "/" %}
             {% if request.cookies.get('access_token') %}
                 {% if request.url.path.startswith('/super_admin') %}
-                    <a href="/super_admin">Systém Dovolených</a>
+                    {% set home_url = "/super_admin" %}
                 {% elif request.url.path.startswith('/admin') %}
-                    <a href="/admin">Systém Dovolených</a>
+                    {% set home_url = "/admin" %}
                 {% else %}
-                    <a href="/employee/profile">Systém Dovolených</a>
+                    {% set home_url = "/employee/profile" %}
                 {% endif %}
-            {% else %}
-                <a href="/">Systém Dovolených</a>
             {% endif %}
-        </h1>
+
+            <a href="{{ home_url }}">
+                <img src="{{ url_for('static', path='/images/logo-kovarna.png') }}" alt="Logo Kovárna" class="header-logo">
+            </a>
+        </div>
     </div>
     
     <div class="nav">
