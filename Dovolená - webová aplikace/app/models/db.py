@@ -4,6 +4,7 @@ import sqlite3
 from contextlib import contextmanager
 from typing import Iterator
 from app.core.config import settings
+import os
 
 #
 # KONFIGURACE DATABÁZE
