@@ -46,14 +46,16 @@ body {
     padding: 20px 0 0;
 }
 
-.header h1 a {
-    color: var(--color-text-light);
-    text-decoration: none;
-    transition: color 0.2s;
-    font-weight: 300;
+.header-logo {
+    max-height: 80px;
+    width: auto;     
+    display: block;
+    margin: 0 auto;   
+    transition: transform 0.2s;
 }
-.header h1 a:hover {
-    color: var(--color-accent);
+
+.header-logo:hover {
+    transform: scale(1.02);
 }
 
 .nav {
