@@ -83,7 +83,7 @@ def get_upcoming_approved_vacations(conn: sqlite3.Connection, limit: int = 10):
     FROM vacations v 
     JOIN users u ON v.employee_id = u.id 
     WHERE v.status = 'Approved' 
-    AND v.start_date >= ? 
+    AND v.end_date >= ? 
     ORDER BY v.start_date ASC 
     LIMIT ?
     """
