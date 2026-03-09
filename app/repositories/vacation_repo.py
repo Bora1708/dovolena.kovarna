@@ -67,7 +67,7 @@ def get_employee_vacation_history(conn: sqlite3.Connection, employee_id: int) ->
 def get_pending_requests(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
-    SELECT v.*, u.email FROM vacations v 
+    SELECT v.*, u.name FROM vacations v 
     JOIN users u ON v.employee_id = u.id 
     WHERE v.status = 'Pending' 
     ORDER BY v.submitted_at ASC
