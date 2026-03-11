@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        /* Outlook a Gmail ignorují externí styly, proto jsou klíčové věci inline níže, 
+           ale tyto definice pomáhají moderním klientům. */
+        body { 
+            background-color: #001230 !important; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+    </style>
+</head>
+<body style="background-color: #001230; color: #ffffff; padding: 40px 20px;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: rgba(30, 58, 138, 0.25); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;">
+        <tr>
+            <td style="padding: 40px; text-align: center;">
+                <a href="{{ link }}" style="text-decoration: none;">
+                    <img src="https://dovolena.kovarna-prostejov.cz/static/images/logo-kovarna.png" 
+                         alt="Restaurace na Kovárně" 
+                         style="max-height: 80px; width: auto; border: 0; display: block; margin: 0 auto;"
+                         width="auto" 
+                         height="80">
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 0 40px 20px 40px;">
+                <h2 style="color: #ffffff; font-weight: bold; font-size: 20px; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px;">
+                    {{ title }}
+                </h2>
+                <div style="color: #a3b3cc; font-size: 16px; line-height: 1.6;">
+                    <p style="margin-bottom: 15px;">Dobrý den,</p>
+                    <div style="background-color: #0f1c3f; border-radius: 8px; padding: 20px; border-left: 4px solid #A88BFB; color: #ffffff;">
+                        {{ content | safe }}
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px 40px 40px 40px; text-align: center;">
+                <a href="{{ link }}" style="display: inline-block; background-color: #A88BFB; color: #ffffff; padding: 12px 30px; border-radius: 6px; text-decoration: none; font-weight: bold; transition: background-color 0.2s;">
+                    Otevřít aplikaci
+                </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px; text-align: center; color: #a3b3cc; font-size: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                &copy; 2026 Restaurace na Kovárně | Systém dovolených<br>
+                <small>Tento e-mail byl vygenerován automaticky, neodpovídejte na něj.</small>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
