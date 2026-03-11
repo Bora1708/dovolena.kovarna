@@ -99,7 +99,7 @@ def submit_new_vacation_request(
                         f"<b>Termín:</b> {start_cz} až {end_cz}<br>"
                         f"<b>Počet dní:</b> {total_days}<br>"
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} dní.",
-                link=f"{BASE_URL}/admin/requests"
+                link=f"{BASE_URL}/admin"
             )
             send_email("funmancz10@gmail.com", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
         except:
@@ -141,7 +141,7 @@ def handle_vacation_approval(
             telo_user = render_email(
                 "vacation_email.html",
                 title=f"Vaše žádost byla {stav_cz}",
-                content=f"Dobrý den, vaše žádost o termín <b>{start_cz} - {end_cz}</b> byla zpracována.<br>"
+                content=f"Dobrý den, vaše žádost o termín <b>{start_cz} - {end_cz}</b> byla {stav_cz.lower()}.<br>"
                         f"<b>Aktuální zůstatek vaší dovolené:</b> {user['remaining_days']} dní.",
                 link=f"{BASE_URL}/employee/profile"
             )
