@@ -14,7 +14,7 @@ import app.repositories.vacation_repo as vacation_repo
 import app.repositories.user_repo as user_repo
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-TEMPLATES_DIR = os.path.join(BASE_DIR, "app", "templates")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 BASE_URL = "https://dovolena.kovarna-prostejov.cz"
 
 template_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
