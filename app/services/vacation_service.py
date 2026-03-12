@@ -101,7 +101,7 @@ def submit_new_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} dní.",
                 link=f"{BASE_URL}/admin"
             )
-            send_email("funmancz10@gmail.com", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
+            send_email("sklena1975@seznam.cz", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return new_request
@@ -214,7 +214,7 @@ def edit_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} dní.",
                 link=f"{BASE_URL}/admin/requests"
             )
-            send_email("funmancz10@gmail.com", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
+            send_email("sklena1975@seznam.cz", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return vacation_repo.get_vacation_request_by_id(conn, request_id)
