@@ -13,7 +13,7 @@ class UserBase(BaseModel):
     email: EmailStr
     is_admin: bool = False
     is_super_admin: bool = False
-    remaining_days: Optional[int] = Field(None, ge=0)
+    remaining_days: Optional[float] = Field(None, ge=0)
 
 
 class UserLogin(BaseModel):
@@ -24,7 +24,7 @@ class UserLogin(BaseModel):
 class EmployeeCreateByAdmin(BaseModel):
     email: EmailStr
     name: str
-    remaining_days: Optional[int] = Field(None, ge=0)
+    remaining_days: Optional[float] = Field(None, ge=0)
 
 
 class UserInDB(UserBase):
@@ -34,7 +34,7 @@ class UserInDB(UserBase):
     profile_picture_path: Optional[str] = None
     is_admin: bool = False
     is_super_admin: bool = False
-    remaining_days: int = Field(..., ge=0)
+    remaining_days: float = Field(..., ge=0)
     
     class Config:
         from_attributes = True
@@ -45,7 +45,7 @@ class UserDisplay(BaseModel):
     email: EmailStr
     is_admin: bool
     is_super_admin: bool
-    remaining_days: int
+    remaining_days: float
     name: str
     profile_picture_path: Optional[str] = None
     
@@ -65,7 +65,7 @@ class VacationRequest(BaseModel):
 class VacationDisplay(VacationRequest):
     id: int
     employee_id: int
-    total_days: int
+    total_days: float
     status: str
     submitted_at: str
     
