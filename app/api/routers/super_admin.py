@@ -53,7 +53,7 @@ async def create_new_user_with_role_submit(
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
-    remaining_days: Optional[int] = Form(None),
+    remaining_days: Optional[float] = Form(None),
     role_choice: int = Form(1) # 1=Employee, 2=Admin, 3=Super Admin
 ):
     try:

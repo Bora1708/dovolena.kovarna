@@ -87,7 +87,7 @@ def create_user(
 #
 # OPERACE AKTUALIZACE (UPDATE)
 #
-def update_user_remaining_days(conn: sqlite3.Connection, user_id: int, days_change: int) -> bool:
+def update_user_remaining_days(conn: sqlite3.Connection, user_id: int, days_change: float) -> bool:
     user = get_user_by_id(conn, user_id)
     if not user:
         return False

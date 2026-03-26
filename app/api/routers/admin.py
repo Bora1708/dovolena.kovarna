@@ -58,7 +58,7 @@ async def create_employee_submit(
     name: str = Form(...),
     email: str = Form(...),
     password: str = Form(...),
-    remaining_days: Optional[int] = Form(None),
+    remaining_days: Optional[float] = Form(None),
 ):
     try:
         employee_data = EmployeeCreateByAdmin(

@@ -14,7 +14,7 @@ def create_vacation_request(
     employee_id: int, 
     start_date: str,
     end_date: str, 
-    total_days: int,
+    total_days: float,
     status: str,
     submitted_at: str
 ) -> Optional[Dict[str, Any]]:
@@ -106,7 +106,7 @@ def update_vacation_request(
     request_id: int,
     new_start_date: str,
     new_end_date: str,
-    new_total_days: int
+    new_total_days: float
 ) -> bool:
     """Aktualizuje data existující žádosti o dovolenou v DB."""
     cursor = conn.cursor()
