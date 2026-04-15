@@ -59,18 +59,21 @@ async def create_employee_submit(
     email: str = Form(...),
     password: str = Form(...),
     remaining_days: Optional[float] = Form(None),
+    employment_type: str = Form(default="full_time"),
 ):
     try:
         employee_data = EmployeeCreateByAdmin(
             email=email,
             name=name,
-            remaining_days=remaining_days
+            remaining_days=remaining_days,
+            employment_type=employment_type
         )
 
         user_service.create_employee_by_admin(
             conn,
             employee_data=employee_data,
-            raw_password=password
+            raw_password=password,
+            employment_type=employment_type
         )
 
         return RedirectResponse(

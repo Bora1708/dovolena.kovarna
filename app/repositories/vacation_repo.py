@@ -16,12 +16,13 @@ def create_vacation_request(
     end_date: str, 
     total_days: float,
     status: str,
-    submitted_at: str
+    submitted_at: str,
+    vacation_type: str = "days"
 ) -> Optional[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
-    INSERT INTO vacations (employee_id, start_date, end_date, total_days, status, submitted_at) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO vacations (employee_id, start_date, end_date, total_days, status, submitted_at, vacation_type) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     """
     cursor.execute(query, (
         employee_id, 
@@ -29,7 +30,8 @@ def create_vacation_request(
         end_date, 
         total_days,
         status, 
-        submitted_at
+        submitted_at,
+        vacation_type
     ))
     conn.commit() 
     
@@ -106,19 +108,21 @@ def update_vacation_request(
     request_id: int,
     new_start_date: str,
     new_end_date: str,
-    new_total_days: float
+    new_total_days: float,
+    new_vacation_type: str = "days"
 ) -> bool:
     """Aktualizuje data existující žádosti o dovolenou v DB."""
     cursor = conn.cursor()
     query = """
     UPDATE vacations 
-    SET start_date = ?, end_date = ?, total_days = ?
+    SET start_date = ?, end_date = ?, total_days = ?, vacation_type = ?
     WHERE id = ? AND status = 'Pending'
     """
     cursor.execute(query, (
         new_start_date,
         new_end_date,
         new_total_days,
+        new_vacation_type,
         request_id
     ))
     conn.commit()

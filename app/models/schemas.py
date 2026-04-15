@@ -14,6 +14,7 @@ class UserBase(BaseModel):
     is_admin: bool = False
     is_super_admin: bool = False
     remaining_days: Optional[float] = Field(None, ge=0)
+    employment_type: str = "full_time"  # "full_time" nebo "half_time"
 
 
 class UserLogin(BaseModel):
@@ -25,6 +26,7 @@ class EmployeeCreateByAdmin(BaseModel):
     email: EmailStr
     name: str
     remaining_days: Optional[float] = Field(None, ge=0)
+    employment_type: str = "full_time"  # "full_time" nebo "half_time"
 
 
 class UserInDB(UserBase):
@@ -35,6 +37,7 @@ class UserInDB(UserBase):
     is_admin: bool = False
     is_super_admin: bool = False
     remaining_days: float = Field(..., ge=0)
+    employment_type: str = "full_time"
     
     class Config:
         from_attributes = True
@@ -48,6 +51,7 @@ class UserDisplay(BaseModel):
     remaining_days: float
     name: str
     profile_picture_path: Optional[str] = None
+    employment_type: str = "full_time"
     
     class Config:
         from_attributes = True
@@ -60,6 +64,7 @@ class UserDisplay(BaseModel):
 class VacationRequest(BaseModel):
     start_date: date
     end_date: date
+    vacation_type: str = "days"  # "days", "hours", nebo "half_day"
 
 
 class VacationDisplay(VacationRequest):
@@ -68,6 +73,7 @@ class VacationDisplay(VacationRequest):
     total_days: float
     status: str
     submitted_at: str
+    vacation_type: str = "days"
     
     class Config:
         from_attributes = True

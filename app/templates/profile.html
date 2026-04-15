@@ -17,21 +17,47 @@
         <p class="dashboard-title"> Zaměstnanec</p>
         <hr> <p>E-mail: {{ user.email }}</p>
         <h3>Stav Dovolené</h3>
-            <p>Zbývající dny dovolené: {{ user.remaining_days }} dnů.</p>
+            {% if user.employment_type == 'half_time' %}
+                <p>Zbývající dovolená: {{ user.remaining_days }} hodin.</p>
+            {% else %}
+                <p>Zbývající dovolená: {{ user.remaining_days }} dní.</p>
+            {% endif %}
     </div>
 
         <div class="card">
             <h3>Podat Novou Žádost</h3>
             <form method="POST" action="/employee/request_vacation">
-                <div>
-                    <label for="start_date">Datum začátku (včetně):</label>
-                    <input type="date" id="start_date" name="start_date" required>
-                </div>
-                <br>
-                <div>
-                    <label for="end_date">Datum konce (včetně):</label>
-                    <input type="date" id="end_date" name="end_date" required>
-                </div>
+                {% if user.employment_type == 'half_time' %}
+                    <div>
+                        <label for="vacation_date">Den dovolené:</label>
+                        <input type="date" id="vacation_date" name="start_date" required>
+                    </div>
+                    <br>
+                    <div>
+                        <label for="vacation_hours">Počet hodin:</label>
+                        <input type="number" id="vacation_hours" name="vacation_hours" min="1" max="8" step="0.5" value="8" required>
+                    </div>
+                    <br>
+                    <input type="hidden" name="vacation_type" value="hours">
+                {% else %}
+                    <div>
+                        <label for="start_date">Datum začátku (včetně):</label>
+                        <input type="date" id="start_date" name="start_date" required>
+                    </div>
+                    <br>
+                    <div>
+                        <label for="end_date">Datum konce (včetně):</label>
+                        <input type="date" id="end_date" name="end_date" required>
+                    </div>
+                    <br>
+                    <div>
+                        <label>Typ dovolené:</label>
+                        <input type="radio" id="days" name="vacation_type" value="days" checked>
+                        <label for="days" style="display: inline; margin-right: 20px;">Celý den</label>
+                        <input type="radio" id="half_day" name="vacation_type" value="half_day">
+                        <label for="half_day" style="display: inline;">Půl dne</label>
+                    </div>
+                {% endif %}
                 <br>
                 <button type="submit">Odeslat žádost</button>
             </form>
@@ -49,7 +75,11 @@
                         <tr>
                             <th>Od</th>
                             <th>Do</th>
-                            <th>Dny</th>
+                            {% if user.employment_type == 'half_time' %}
+                                <th>Hodiny</th>
+                            {% else %}
+                                <th>Počet</th>
+                            {% endif %}
                             <th>Stav</th>
                             <th>Akce</th>
                         </tr>
@@ -59,7 +89,10 @@
                         <tr>
                             <td>{{ req.start_date | date_cz }}</td>
                             <td>{{ req.end_date | date_cz }}</td>
-                            <td>{{ req.total_days }}</td>
+                            <td>
+                                {% set unit_display = "h" if user.employment_type == 'half_time' else ("½ dne" if req.vacation_type == 'half_day' else "dní") %}
+                                {{ req.total_days }} {{ unit_display }}
+                            </td>
                             <td>
                                 {% if req.status == 'Approved' %}
                                     <strong class="status-approved">Schváleno</strong>

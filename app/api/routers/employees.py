@@ -51,7 +51,9 @@ async def submit_vacation_request(
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_employee_payload), 
     start_date: str = Form(...),
-    end_date: str = Form(...)
+    end_date: str = Form(default=None),
+    vacation_type: str = Form(default="days"),
+    vacation_hours: str = Form(default=None)
 ):
     user_email = payload['sub']
     user_data = user_repo.get_user_by_email(conn, user_email)
@@ -61,16 +63,32 @@ async def submit_vacation_request(
 
     user_id = user_data['id']
     remaining_days = user_data['remaining_days']
+    employment_type = user_data.get('employment_type', 'full_time')
 
     try:
-        request_data = VacationRequest(start_date=start_date, end_date=end_date)
-        
-        vacation_service.submit_new_vacation_request(
-            conn,
-            user_id,
-            request_data,
-            remaining_days
-        )
+        # Pro half_time: end_date se nastavi na start_date, vacation_hours se prejedeme do total_days
+        if employment_type == 'half_time':
+            actual_end_date = start_date
+            request_data = VacationRequest(start_date=start_date, end_date=actual_end_date, vacation_type=vacation_type)
+            # vacation_hours bude pouzit v vacation_service
+            vacation_service.submit_new_vacation_request(
+                conn,
+                user_id,
+                request_data,
+                remaining_days,
+                employment_type,
+                vacation_hours=float(vacation_hours) if vacation_hours else 8
+            )
+        else:
+            # Full-time: standardni logika s od-do
+            request_data = VacationRequest(start_date=start_date, end_date=end_date, vacation_type=vacation_type)
+            vacation_service.submit_new_vacation_request(
+                conn,
+                user_id,
+                request_data,
+                remaining_days,
+                employment_type
+            )
 
         return RedirectResponse(
             url="/employee/profile?success=Žádost_byla_úspěšně_podána_a_čeká_na_schválení.",
@@ -134,7 +152,9 @@ async def edit_vacation_request_submit(
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_employee_payload),
     start_date: str = Form(...),
-    end_date: str = Form(...)
+    end_date: str = Form(default=None),
+    vacation_type: str = Form(default="days"),
+    vacation_hours: str = Form(default=None)
 ):
     user_email = payload['sub']
     user_data = user_repo.get_user_by_email(conn, user_email)
@@ -144,17 +164,34 @@ async def edit_vacation_request_submit(
 
     user_id = user_data['id']
     remaining_days = user_data['remaining_days']
+    employment_type = user_data.get('employment_type', 'full_time')
 
     try:
-        new_request_data = VacationRequest(start_date=start_date, end_date=end_date)
-
-        vacation_service.edit_vacation_request(
-            conn,
-            request_id,
-            user_id,
-            new_request_data,
-            remaining_days
-        )
+        # Pro half_time: end_date se nastavi na start_date, vacation_hours se prejedeme
+        if employment_type == 'half_time':
+            actual_end_date = start_date
+            new_request_data = VacationRequest(start_date=start_date, end_date=actual_end_date, vacation_type=vacation_type)
+            vacation_service.edit_vacation_request(
+                conn,
+                request_id,
+                user_id,
+                new_request_data,
+                remaining_days,
+                employment_type,
+                vacation_hours=float(vacation_hours) if vacation_hours else 8
+            )
+        else:
+            # Full-time: standardni logika s od-do
+            new_request_data = VacationRequest(start_date=start_date, end_date=end_date, vacation_type=vacation_type)
+            vacation_service.edit_vacation_request(
+                conn,
+                request_id,
+                user_id,
+                new_request_data,
+                remaining_days,
+                employment_type
+            )
+        
         return RedirectResponse(
             url="/employee/profile?success=Žádost_byla_úspěšně_upravena.",
             status_code=status.HTTP_303_SEE_OTHER

@@ -12,7 +12,7 @@ from app.core.config import settings
 def get_all_users_for_admin_management(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
-    SELECT id, name, email, is_admin, is_super_admin, remaining_days 
+    SELECT id, name, email, is_admin, is_super_admin, remaining_days, employment_type
     FROM users 
     ORDER BY email
     """
@@ -22,7 +22,7 @@ def get_all_users_for_admin_management(conn: sqlite3.Connection) -> List[Dict[st
 def get_user_by_email(conn: sqlite3.Connection, email: str) -> Optional[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
-    SELECT id, email, hashed_password, is_admin, is_super_admin, remaining_days, profile_picture_path, name 
+    SELECT id, email, hashed_password, is_admin, is_super_admin, remaining_days, profile_picture_path, name, employment_type
     FROM users 
     WHERE email = ?
     """
@@ -35,7 +35,7 @@ def get_user_by_email(conn: sqlite3.Connection, email: str) -> Optional[Dict[str
 def get_user_by_id(conn: sqlite3.Connection, user_id: int) -> Optional[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
-    SELECT id, email, hashed_password, is_admin, is_super_admin, remaining_days, profile_picture_path, name 
+    SELECT id, email, hashed_password, is_admin, is_super_admin, remaining_days, profile_picture_path, name, employment_type
     FROM users 
     WHERE id = ?
     """
@@ -48,7 +48,7 @@ def get_user_by_id(conn: sqlite3.Connection, user_id: int) -> Optional[Dict[str,
 def get_all_employees(conn: sqlite3.Connection) -> List[Dict[str, Any]]:
     cursor = conn.cursor()
     query = """
-    SELECT id, email, remaining_days, profile_picture_path, name 
+    SELECT id, email, remaining_days, profile_picture_path, name, employment_type
     FROM users 
     WHERE is_admin = 0 AND is_super_admin = 0 
     ORDER BY email
@@ -65,7 +65,8 @@ def create_user(
     user_data: EmployeeCreateByAdmin, 
     hashed_password: str, 
     is_admin: bool = False, 
-    is_super_admin: bool = False
+    is_super_admin: bool = False,
+    employment_type: str = "full_time"
 ) -> Optional[Dict[str, Any]]:
     
     remaining_days = user_data.remaining_days if user_data.remaining_days is not None else settings.DEFAULT_VACATION_DAYS
@@ -74,10 +75,10 @@ def create_user(
     
     cursor = conn.cursor()
     query = """
-    INSERT INTO users (email, hashed_password, is_admin, is_super_admin, remaining_days, name) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO users (email, hashed_password, is_admin, is_super_admin, remaining_days, name, employment_type) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     """ 
-    cursor.execute(query, (user_data.email, hashed_password, admin_flag, super_admin_flag, remaining_days, user_data.name))
+    cursor.execute(query, (user_data.email, hashed_password, admin_flag, super_admin_flag, remaining_days, user_data.name, employment_type))
     conn.commit()
     
     last_id = cursor.lastrowid

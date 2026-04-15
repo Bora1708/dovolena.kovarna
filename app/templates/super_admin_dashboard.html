@@ -32,8 +32,14 @@
                 <label for="password">Heslo:</label>
                 <input type="password" id="password" name="password" required><br>
 
-                <label for="remaining_days">Zbývající dny dovolené (Dnů):</label>
-                <input type="number" id="remaining_days" name="remaining_days" step="0.1" value="20" min="0"><br>
+                <label for="employment_type">Typ úvazku:</label>
+                <select name="employment_type" id="employment_type" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                    <option value="full_time">Plný úvazek</option>
+                    <option value="half_time">Poloviční úvazek</option>
+                </select>
+
+                <label for="remaining_days" id="remaining_days_label">Zbývající dny dovolené (Dnů):</label>
+                <input type="number" id="remaining_days" name="remaining_days" step="0.1" value="20" min="0" placeholder="20"><br>
                 
                 <label for="role_choice">Role uživatele:</label>
                 <select name="role_choice" id="role_choice" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
@@ -44,6 +50,26 @@
 
                 <button type="submit" class="submit">Vytvořit Uživatele</button>
             </form>
+
+            <script>
+                const employmentTypeSelect = document.getElementById('employment_type');
+                const remainingDaysInput = document.getElementById('remaining_days');
+                const remainingDaysLabel = document.getElementById('remaining_days_label');
+
+                function updateRemainingDaysLabel() {
+                    if (employmentTypeSelect.value === 'half_time') {
+                        remainingDaysLabel.textContent = 'Zbývající počet hodin dovolené (Hodin):';
+                        remainingDaysInput.placeholder = '80';
+                        remainingDaysInput.value = '80';
+                    } else {
+                        remainingDaysLabel.textContent = 'Zbývající dny dovolené (Dnů):';
+                        remainingDaysInput.placeholder = '20';
+                        remainingDaysInput.value = '20';
+                    }
+                }
+
+                employmentTypeSelect.addEventListener('change', updateRemainingDaysLabel);
+            </script>
         </div>
 
     <div class="card table-card">
@@ -58,6 +84,7 @@
                             <th>Jméno</th>
                             <th>E-mail</th>
                             <th>Aktuální Role</th>
+                            <th>Typ Úvazku</th>
                             <th>Zbývá Dovolené</th>
                             <th style="width: 250px;">Změna Oprávnění</th>
                             <th>Smazat</th> </tr>
@@ -77,7 +104,20 @@
                                     Employee
                                 {% endif %}
                             </td>
-                            <td>{{ user.remaining_days }} dnů</td>
+                            <td>
+                                {% if user.employment_type == 'half_time' %}
+                                    Poloviční
+                                {% else %}
+                                    Plný
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.employment_type == 'half_time' %}
+                                    {{ user.remaining_days }} h
+                                {% else %}
+                                    {{ user.remaining_days }} dní
+                                {% endif %}
+                            </td>
                             
                             <td>
                                 <form method="POST" action="/super_admin/update_role/{{ user.id }}" style="display:flex; gap: 5px; align-items:center;">

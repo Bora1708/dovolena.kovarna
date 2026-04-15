@@ -17,20 +17,50 @@
             {% if error_msg %}
                 <div class="alert error"><strong>CHYBA:</strong> {{ error_msg | replace('_', ' ') }}</div>
             {% endif %}
-            <p>Původní termín: {{ request_data.start_date | date_cz }} – {{ request_data.end_date | date_cz }} ({{ request_data.total_days }} dní)</p>
-            <p>Zbývající dny: {{ remaining_days }} dnů.</p>
+            <p>Původní termín: {{ request_data.start_date | date_cz }} – {{ request_data.end_date | date_cz }} 
+                ({% set unit_display = "h" if request_data.vacation_type == 'hours' else ("½ dne" if request_data.vacation_type == 'half_day' else "dní") %}
+                {{ request_data.total_days }} {{ unit_display }})</p>
+            <p>
+                {% if request_data.vacation_type == 'hours' %}
+                    Zbývající dovolená: {{ remaining_days }} hodin.
+                {% else %}
+                    Zbývající dovolená: {{ remaining_days }} dní.
+                {% endif %}
+            </p>
             <h3>Nový Termín</h3>
             <form method="POST" action="/employee/edit/{{ request_data.id }}">
-                <div>
-                    <label for="start_date">Datum začátku:</label>
-                    <input type="date" id="start_date" name="start_date" value="{{ request_data.start_date }}" required>
-                </div>
-                <br>
-                <div>
-                    <label for="end_date">Datum konce:</label>
-                    <input type="date" id="end_date" name="end_date" value="{{ request_data.end_date }}" required>
-                </div>
-                <br>
+                {% if request_data.vacation_type == 'hours' %}
+                    <div>
+                        <label for="vacation_date">Den dovolené:</label>
+                        <input type="date" id="vacation_date" name="start_date" value="{{ request_data.start_date }}" required>
+                    </div>
+                    <br>
+                    <div>
+                        <label for="vacation_hours">Počet hodin:</label>
+                        <input type="number" id="vacation_hours" name="vacation_hours" min="1" max="8" step="0.5" value="{{ request_data.total_days }}" required>
+                    </div>
+                    <br>
+                    <input type="hidden" name="vacation_type" value="hours">
+                {% else %}
+                    <div>
+                        <label for="start_date">Datum začátku:</label>
+                        <input type="date" id="start_date" name="start_date" value="{{ request_data.start_date }}" required>
+                    </div>
+                    <br>
+                    <div>
+                        <label for="end_date">Datum konce:</label>
+                        <input type="date" id="end_date" name="end_date" value="{{ request_data.end_date }}" required>
+                    </div>
+                    <br>
+                    <div>
+                        <label>Typ dovolené:</label>
+                        <input type="radio" id="days" name="vacation_type" value="days" {% if request_data.vacation_type != 'half_day' %}checked{% endif %}>
+                        <label for="days" style="display: inline; margin-right: 20px;">Celý den</label>
+                        <input type="radio" id="half_day" name="vacation_type" value="half_day" {% if request_data.vacation_type == 'half_day' %}checked{% endif %}>
+                        <label for="half_day" style="display: inline;">Půl dne</label>
+                    </div>
+                    <br>
+                {% endif %}
                 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
                     
                     <button type="submit" class="submit">Uložit Upravenou Žádost</button>

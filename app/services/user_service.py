@@ -29,7 +29,8 @@ def authenticate_user(conn: sqlite3.Connection, form_data: UserLogin) -> Optiona
 def create_employee_by_admin(
     conn: sqlite3.Connection, 
     employee_data: EmployeeCreateByAdmin,
-    raw_password: str
+    raw_password: str,
+    employment_type: str = "full_time"
 ) -> Optional[Dict[str, Any]]:
     
     if user_repo.get_user_by_email(conn, employee_data.email):
@@ -42,6 +43,7 @@ def create_employee_by_admin(
         employee_data, 
         hashed_password, 
         is_admin=False,
+        employment_type=employment_type
     )
     return new_user
 

@@ -54,6 +54,7 @@ async def create_new_user_with_role_submit(
     email: str = Form(...),
     password: str = Form(...),
     remaining_days: Optional[float] = Form(None),
+    employment_type: str = Form(default="full_time"),
     role_choice: int = Form(1) # 1=Employee, 2=Admin, 3=Super Admin
 ):
     try:
@@ -61,7 +62,8 @@ async def create_new_user_with_role_submit(
             name=name,
             email=email,
             password=password,
-            remaining_days=remaining_days if remaining_days is not None else 20
+            remaining_days=remaining_days if remaining_days is not None else 20,
+            employment_type=employment_type
         )
     except ValidationError as e:
         error_message = f"Chyba validace dat: {e}"
@@ -83,7 +85,8 @@ async def create_new_user_with_role_submit(
             user_data, 
             hashed_password, 
             is_admin=is_admin, 
-            is_super_admin=is_super_admin
+            is_super_admin=is_super_admin,
+            employment_type=employment_type
         )
         if new_user:
             return RedirectResponse(url="/super_admin?success=Uživatel_byl_úspěšně_vytvořen.", status_code=status.HTTP_303_SEE_OTHER)
