@@ -47,14 +47,13 @@ def is_overlapping(start1: date, end1: date, start2: date, end2: date) -> bool:
     return start1 <= end2 and end1 >= start2
 
 def calculate_working_days(start_date: date, end_date: date) -> int:
-    """Počítá pracovní dny (Po-Pá) v daném období."""
+    """Počítá všechny dny (včetně víkendů) v daném období."""
     if start_date > end_date:
         return 0
     working_days = 0
     current_date = start_date
     while current_date <= end_date:
-        if current_date.weekday() < 5:
-            working_days += 1
+        working_days += 1
         current_date += timedelta(days=1)
     return working_days
 
@@ -69,9 +68,9 @@ def calculate_vacation_units(
     Vypočítá počet jednotek dovolené podle typu úvazku a typu dovolené.
     
     Returns:
-        - full_time + 'days': počet pracovních dní (celá čísla)
-        - full_time + 'half_day': počet pracovních dní - 0.5 (poslední den je půl dne)
-        - half_time + 'hours': vrátí vacation_hours přímo (pokud zadáno) nebo počet pracovních dní × 4
+        - full_time + 'days': počet kalendářních dní (celá čísla, včetně víkendů)
+        - full_time + 'half_day': počet kalendářních dní - 0.5 (poslední den je půl dne)
+        - half_time + 'hours': vrátí vacation_hours přímo (pokud zadáno) nebo počet kalendářních dní × 4
     """
     if start_date > end_date:
         return 0
@@ -171,7 +170,7 @@ def submit_new_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} {unit_name}.",
                 link=f"{BASE_URL}/admin"
             )
-            send_email("sklena1975@seznam.cz", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
+            send_email("funmancz10@gmail.com", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return new_request
@@ -313,7 +312,7 @@ def edit_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} {unit_name}.",
                 link=f"{BASE_URL}/admin/requests"
             )
-            send_email("sklena1975@seznam.cz", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
+            send_email("funmancz10@gmail.com", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return vacation_repo.get_vacation_request_by_id(conn, request_id)
