@@ -10,12 +10,12 @@ class Settings:
     #
     # ZABEZPEČENÍ
     #
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "CHANGE_ME")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 1440))
     
     # CSRF Protection
-    CSRF_SECRET_KEY: str = os.getenv("CSRF_SECRET_KEY", SECRET_KEY)
+    CSRF_SECRET_KEY: str = os.getenv("CSRF_SECRET_KEY", "")
 
     #
     # KONFIGURACE DATABÁZE A SLUŽEB
@@ -26,8 +26,8 @@ class Settings:
     #
     # EMAIL KONFIGURACE
     #
-    SMTP_EMAIL: str = os.getenv("SMTP_EMAIL", "dovolena.kovarna@gmail.com")
-    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "akqgszsqwxchywcq")
+    SMTP_EMAIL: str = os.getenv("SMTP_EMAIL", "")
+    SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
     SMTP_SERVER: str = os.getenv("SMTP_SERVER", "smtp.gmail.com")
     SMTP_PORT: int = int(os.getenv("SMTP_PORT", 587))
     
@@ -36,5 +36,23 @@ class Settings:
     #
     ENV: str = os.getenv("ENV", "development")
     BASE_URL: str = os.getenv("BASE_URL", "http://localhost:8000")
+
+    def __init__(self) -> None:
+        self._validate_required_secrets()
+
+    def _validate_required_secrets(self) -> None:
+        if not self.SECRET_KEY:
+            raise ValueError("Missing required env var: SECRET_KEY")
+        if len(self.SECRET_KEY) < 32:
+            raise ValueError("SECRET_KEY must be at least 32 characters long")
+
+        # Use dedicated CSRF secret when provided, otherwise reuse validated SECRET_KEY.
+        if not self.CSRF_SECRET_KEY:
+            self.CSRF_SECRET_KEY = self.SECRET_KEY
+
+        if not self.SMTP_EMAIL:
+            raise ValueError("Missing required env var: SMTP_EMAIL")
+        if not self.SMTP_PASSWORD:
+            raise ValueError("Missing required env var: SMTP_PASSWORD")
     
 settings = Settings()
