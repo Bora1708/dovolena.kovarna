@@ -1,7 +1,10 @@
 # app/api/routers/employees.py
 
+from urllib import response
+
 from fastapi import APIRouter, Depends, Request, Form, HTTPException, status, Path
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi_csrf_protect import CsrfProtect
 import sqlite3
 from typing import Dict, Any, Optional
 from app.api.dependencies import get_db_conn, get_current_employee_payload
@@ -21,7 +24,8 @@ router = APIRouter(tags=["Employee"])
 async def employee_profile_page(
     request: Request,
     conn: sqlite3.Connection = Depends(get_db_conn),
-    payload: Dict[str, Any] = Depends(get_current_employee_payload)
+    payload: Dict[str, Any] = Depends(get_current_employee_payload),
+    csrf_protect: CsrfProtect = Depends()
 ):
     user_email = payload['sub']
     user_data = user_repo.get_user_by_email(conn, user_email)
@@ -33,13 +37,19 @@ async def employee_profile_page(
     history = vacation_repo.get_employee_vacation_history(conn, user_id)
 
     tpl = request.app.state.templates
-    return tpl.TemplateResponse("profile.html", {
+
+    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+    response = tpl.TemplateResponse("profile.html", {
         "request": request,
         "user": user_data,
         "history": history,
         "error": request.query_params.get('error'),
         "success": request.query_params.get('success'),
+        "csrf_token": csrf_token
     })
+
+    csrf_protect.set_csrf_cookie(signed_token, response)
+    return response
 
 
 #
@@ -48,6 +58,7 @@ async def employee_profile_page(
 @router.post("/request_vacation", response_class=RedirectResponse)
 async def submit_vacation_request(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_employee_payload), 
     start_date: str = Form(...),
@@ -55,6 +66,8 @@ async def submit_vacation_request(
     vacation_type: str = Form(default="days"),
     vacation_hours: str = Form(default=None)
 ):
+    await csrf_protect.validate_csrf(request)
+
     user_email = payload['sub']
     user_data = user_repo.get_user_by_email(conn, user_email)
 
@@ -113,6 +126,7 @@ async def submit_vacation_request(
 async def edit_vacation_form(
     request: Request,
     request_id: int,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_employee_payload)
 ):
@@ -132,15 +146,19 @@ async def edit_vacation_form(
     if req_data['status'] != 'Pending':
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Lze upravovat pouze čekající žádosti.")
 
+    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
     tpl = request.app.state.templates
-    return tpl.TemplateResponse("edit_vacation.html", {
+    response = tpl.TemplateResponse("edit_vacation.html", {
         "request": request,
         "request_id": request_id,
         "request_data": req_data,
         "error": request.query_params.get('error'),
-        "remaining_days": user_data['remaining_days']
+        "remaining_days": user_data['remaining_days'],
+        "csrf_token": csrf_token
     })
 
+    csrf_protect.set_csrf_cookie(signed_token, response)
+    return response
 
 #
 # ZPRACOVÁNÍ ÚPRAV ŽÁDOSTI (POST)
@@ -149,6 +167,7 @@ async def edit_vacation_form(
 async def edit_vacation_request_submit(
     request_id: int,
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_employee_payload),
     start_date: str = Form(...),
@@ -156,6 +175,7 @@ async def edit_vacation_request_submit(
     vacation_type: str = Form(default="days"),
     vacation_hours: str = Form(default=None)
 ):
+    await csrf_protect.validate_csrf(request)
     user_email = payload['sub']
     user_data = user_repo.get_user_by_email(conn, user_email)
 

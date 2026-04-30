@@ -22,6 +22,7 @@
         <div class="card" style="flex: 1 1 calc(50% - 10px);">
             <h3>Vytvořit Nového Uživatele a Nastavit Roli</h3>
             <form method="POST" action="/super_admin/create_user_with_role">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 
                 <label for="name">Jméno a Příjmení:</label>
                 <input type="text" id="name" name="name" required><br>
@@ -121,6 +122,7 @@
                             
                             <td>
                                 <form method="POST" action="/super_admin/update_role/{{ user.id }}" style="display:flex; gap: 5px; align-items:center;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                     
                                     <select name="role_choice" required style="padding: 5px; border-radius: 4px;">
                                         
@@ -140,7 +142,7 @@
                                     <form method="POST" action="/super_admin/delete_user/{{ user.id }}" 
                                           style="display:inline;" 
                                           onsubmit="return confirm('Opravdu chcete smazat uživatele {{ user.name }}? Tím se smažou i jeho žádosti o dovolenou.');">
-                                        
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                         <button type="submit" class="reject" style="padding: 5px 10px;">Smazat</button>
                                     </form>
                                 {% else %}

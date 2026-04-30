@@ -4,15 +4,21 @@ from fastapi import FastAPI, Request, status, HTTPException
 from fastapi.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 from starlette.responses import RedirectResponse, HTMLResponse
+from fastapi_csrf_protect import CsrfProtect
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from app.api.routers import auth as auth_router
 from app.api.routers import employees as employees_router
 from app.api.routers import admin as admin_router
 from app.api.routers import super_admin as super_admin_router
 from app.api.error_handlers import setup_error_handlers
-import os
+from app.core.config import settings
 from app.core.security import decode_access_token
 from app.utils.jinja2_filters import format_date_czech
 
+# Initialize Limiter
+limiter = Limiter(key_func=get_remote_address)
 
 #
 # CENTRÁLNÍ OBSLUHA CHYB HTTP
@@ -58,6 +64,11 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
         status_code=exc.status_code
     )
 
+async def rate_limit_exception_handler(request: Request, exc: RateLimitExceeded):
+    return HTMLResponse(
+        content="Příliš mnoho požadavků. Zkuste to prosím za minutu.",
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS
+    )
 
 #
 # TVORBA A KONFIGURACE APLIKACE
@@ -66,14 +77,28 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Dovolená - aplikace")
 
     app.add_exception_handler(HTTPException, custom_http_exception_handler)
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exception_handler)
     setup_error_handlers(app)
-    app.state.ENV = os.environ.get("ENV", "development")
+    app.state.ENV = settings.ENV
+    app.state.limiter = limiter
     
     app.mount("/static", StaticFiles(directory="app/static"), name="static")
     
     app.state.templates = Jinja2Templates(directory="app/templates")
     app.state.templates.env.filters['date_cz'] = format_date_czech
-
+    
+    # CSRF Protection setup
+    @CsrfProtect.load_config
+    def load_config():
+        csrf_settings = {
+            "secret_key": settings.CSRF_SECRET_KEY,
+            "token_location": "body",
+            "token_key": "csrf_token",
+            "cookie_samesite": "lax",
+            "cookie_secure": settings.ENV == "production",
+        }
+        return csrf_settings.items()
+    
     app.include_router(auth_router.router)
     app.include_router(super_admin_router.router, prefix="/super_admin")
     app.include_router(employees_router.router, prefix="/employee") 

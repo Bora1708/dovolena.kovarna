@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, Request, Form, status, Path
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi_csrf_protect import CsrfProtect
 import sqlite3
 from typing import Dict, Any, Optional
 from app.api.dependencies import get_db_conn, get_current_super_admin_payload
@@ -20,7 +21,8 @@ router = APIRouter(tags=["Super Admin"])
 async def super_admin_dashboard_page(
     request: Request,
     conn: sqlite3.Connection = Depends(get_db_conn),
-    payload: Dict[str, Any] = Depends(get_current_super_admin_payload)
+    payload: Dict[str, Any] = Depends(get_current_super_admin_payload),
+    csrf_protect: CsrfProtect = Depends()
 ):
     admin_email = payload['sub']
     admin_data = user_repo.get_user_by_email(conn, admin_email)
@@ -31,7 +33,8 @@ async def super_admin_dashboard_page(
     admin_days = admin_data.get('remaining_days', 0) if admin_data else 0
 
     tpl = request.app.state.templates
-    return tpl.TemplateResponse("super_admin_dashboard.html", {
+    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+    response = tpl.TemplateResponse("super_admin_dashboard.html", {
         "request": request,
         "user_name": admin_name,
         "admin_email": admin_email,
@@ -39,8 +42,11 @@ async def super_admin_dashboard_page(
         "users": all_users,
         "payload": payload,
         "error": request.query_params.get("error"),
-        "success": request.query_params.get("success")
+        "success": request.query_params.get("success"),
+        "csrf_token": csrf_token
     })
+    csrf_protect.set_csrf_cookie(signed_token, response)
+    return response
 
 
 #
@@ -48,6 +54,8 @@ async def super_admin_dashboard_page(
 #
 @router.post("/create_user_with_role", status_code=status.HTTP_303_SEE_OTHER)
 async def create_new_user_with_role_submit(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_super_admin_payload),
     name: str = Form(...),
@@ -57,6 +65,10 @@ async def create_new_user_with_role_submit(
     employment_type: str = Form(default="full_time"),
     role_choice: int = Form(1) # 1=Employee, 2=Admin, 3=Super Admin
 ):
+    await csrf_protect.validate_csrf(request)
+    if role_choice not in (1, 2, 3):
+        return RedirectResponse(url="/super_admin?error=Neplatná_hodnota_role.", status_code=status.HTTP_303_SEE_OTHER)
+
     try:
         user_data = EmployeeCreateByAdmin(
             name=name,
@@ -104,10 +116,14 @@ async def create_new_user_with_role_submit(
 async def update_user_role_submit(
     request: Request,
     user_id: int,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_super_admin_payload),
     role_choice: int = Form(..., description="Požadovaná role: 1, 2 nebo 3") 
 ):
+    await csrf_protect.validate_csrf(request)
+    if role_choice not in (1, 2, 3):
+        return RedirectResponse(url="/super_admin?error=Neplatná_hodnota_role.", status_code=status.HTTP_303_SEE_OTHER)
     
     is_admin = role_choice >= 2
     is_super_admin = role_choice >= 3
@@ -143,10 +159,13 @@ async def update_user_role_submit(
 #
 @router.post("/delete_user/{user_id}", status_code=status.HTTP_303_SEE_OTHER)
 async def delete_user_by_super_admin(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     user_id: int = Path(..., gt=0),
     payload: Dict[str, Any] = Depends(get_current_super_admin_payload),
 ):
+    await csrf_protect.validate_csrf(request)
     if user_id == payload.get('id'):
         return RedirectResponse(url="/super_admin?error=Nemůžete_smazat_sám_sebe.", status_code=status.HTTP_303_SEE_OTHER)
     

@@ -27,6 +27,7 @@
         <div class="card">
             <h3>Podat Novou Žádost</h3>
             <form method="POST" action="/employee/request_vacation">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 {% if user.employment_type == 'half_time' %}
                     <div>
                         <label for="vacation_date">Den dovolené:</label>

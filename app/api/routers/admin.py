@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, Depends, Request, Form, HTTPException, status, Path
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi_csrf_protect import CsrfProtect
 import sqlite3
 from typing import Dict, Any, Optional
 from app.api.dependencies import get_db_conn, get_current_admin_payload
@@ -21,7 +22,8 @@ router = APIRouter(tags=["Admin"])
 async def admin_dashboard_page(
     request: Request,
     conn: sqlite3.Connection = Depends(get_db_conn),
-    payload: Dict[str, Any] = Depends(get_current_admin_payload)
+    payload: Dict[str, Any] = Depends(get_current_admin_payload),
+    csrf_protect: CsrfProtect = Depends()
 ):
     admin_email = payload['sub']
     admin_data = user_repo.get_user_by_email(conn, admin_email)
@@ -36,15 +38,19 @@ async def admin_dashboard_page(
     pending_requests = vacation_repo.get_pending_requests(conn)
 
     tpl = request.app.state.templates
-    return tpl.TemplateResponse("admin_dashboard.html", {
+    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+    response = tpl.TemplateResponse("admin_dashboard.html", {
         "request": request,
         "user_name": admin_name,
         "user_email": admin_email,
         "employees": employees,
         "upcoming_vacations": upcoming_vacations,
         "pending_requests": pending_requests,
-        "error": None
+        "error": None,
+        "csrf_token": csrf_token
     })
+    csrf_protect.set_csrf_cookie(signed_token, response)
+    return response
 
 
 #
@@ -54,6 +60,7 @@ async def admin_dashboard_page(
 async def create_employee_submit(
     request: Request,
     conn: sqlite3.Connection = Depends(get_db_conn),
+    csrf_protect: CsrfProtect = Depends(),
     payload: Dict[str, Any] = Depends(get_current_admin_payload),
     name: str = Form(...),
     email: str = Form(...),
@@ -61,6 +68,7 @@ async def create_employee_submit(
     remaining_days: Optional[float] = Form(None),
     employment_type: str = Form(default="full_time"),
 ):
+    await csrf_protect.validate_csrf(request)
     try:
         employee_data = EmployeeCreateByAdmin(
             email=email,
@@ -100,10 +108,13 @@ async def create_employee_submit(
 #
 @router.post("/delete_user/{user_id}", status_code=status.HTTP_303_SEE_OTHER)
 async def delete_user_submit(
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     user_id: int = Path(..., gt=0),
     payload: Dict[str, Any] = Depends(get_current_admin_payload),
 ):
+    await csrf_protect.validate_csrf(request)
     user_to_delete = user_repo.get_user_by_id(conn, user_id)
     
     if not user_to_delete:
@@ -130,10 +141,13 @@ async def delete_user_submit(
 @router.post("/process_request/{request_id}")
 async def process_vacation_request(
     request_id: int,
+    request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     payload: Dict[str, Any] = Depends(get_current_admin_payload),
     action: str = Form(..., description="Akce: 'Approve' nebo 'Reject'")
 ):
+    await csrf_protect.validate_csrf(request)
     
     if action == "Approve":
         new_status = "Approved"

@@ -29,6 +29,7 @@
             </p>
             <h3>Nový Termín</h3>
             <form method="POST" action="/employee/edit/{{ request_data.id }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                 {% if request_data.vacation_type == 'hours' %}
                     <div>
                         <label for="vacation_date">Den dovolené:</label>

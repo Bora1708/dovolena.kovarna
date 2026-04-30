@@ -3,7 +3,10 @@
 from typing import Optional, Dict, Any
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import RedirectResponse
+from fastapi_csrf_protect import CsrfProtect
 from starlette import status
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 import sqlite3
 from app.api.dependencies import get_db_conn, get_current_user_optional
 import app.services.user_service as user_service 
@@ -13,6 +16,9 @@ from app.core.config import settings
 
 router = APIRouter(tags=["Auth"])
 
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+
 
 #
 # ZOBRAZENÍ PŘIHLAŠOVACÍ STRÁNKY
@@ -20,7 +26,8 @@ router = APIRouter(tags=["Auth"])
 @router.get("/login")
 async def login_page(
     request: Request,
-    payload: Optional[Dict[str, any]] = Depends(get_current_user_optional)
+    payload: Optional[Dict[str, any]] = Depends(get_current_user_optional),
+    csrf_protect: CsrfProtect = Depends()
 ):
     tpl = request.app.state.templates
     
@@ -35,20 +42,28 @@ async def login_page(
             return RedirectResponse(url="/admin", status_code=status.HTTP_302_FOUND)
         else:
             return RedirectResponse(url="/employee/profile", status_code=status.HTTP_302_FOUND)
-            
-    return tpl.TemplateResponse("login.html", {"request": request, "error": None})
+
+    csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+
+    response = tpl.TemplateResponse("login.html", {"request": request, "error": None, "csrf_token": csrf_token})
+
+    csrf_protect.set_csrf_cookie(signed_token, response)
+    return response
 
 
 #
-# ZPRACOVÁNÍ PŘIHLAŠOVACÍHO FORMULÁŘE
+# ZPRACOVÁNÍ PŘIHLAŠOVACÍHO FORMULÁŘE - S RATE LIMITING
 #
 @router.post("/login")
+@limiter.limit("5/minute")  # Max 5 pokusů za minutu
 async def login_submit(
     request: Request,
+    csrf_protect: CsrfProtect = Depends(),
     conn: sqlite3.Connection = Depends(get_db_conn),
     email: str = Form(..., alias="username"),
     password: str = Form(...),
 ):
+    await csrf_protect.validate_csrf(request)
     user_data = user_service.authenticate_user(
         conn, 
         UserLogin(email=email, password=password) 
@@ -56,11 +71,14 @@ async def login_submit(
 
     if user_data is None:
         tpl = request.app.state.templates
-        return tpl.TemplateResponse(
+        csrf_token, signed_token = csrf_protect.generate_csrf_tokens()
+        response = tpl.TemplateResponse(
             "login.html",
-            {"request": request, "error": "Neplatný e-mail nebo heslo."},
+            {"request": request, "error": "Neplatný e-mail nebo heslo.", "csrf_token": csrf_token},
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
+        csrf_protect.set_csrf_cookie(signed_token, response)
+        return response
     
     # Získání dat pro token
     user_id = user_data['id']

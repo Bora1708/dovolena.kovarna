@@ -130,6 +130,7 @@ def delete_user(conn: sqlite3.Connection, user_id: int) -> bool:
     cursor = conn.cursor()
     cursor.execute("DELETE FROM vacations WHERE employee_id = ?", (user_id,))
     cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    deleted_users = cursor.rowcount
     conn.commit()
     
-    return True
+    return deleted_users == 1

@@ -3,19 +3,24 @@
 import sqlite3
 import os
 import smtplib
+import logging
 from typing import Dict, Any
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from time import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from jinja2 import Environment, FileSystemLoader
 from app.models.schemas import VacationRequest
+from app.core.config import settings
 import app.repositories.vacation_repo as vacation_repo
 import app.repositories.user_repo as user_repo
 
+# Logging setup
+logger = logging.getLogger(__name__)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-BASE_URL = "https://dovolena.kovarna-prostejov.cz"
+BASE_URL = settings.BASE_URL
 
 template_env = Environment(loader=FileSystemLoader(TEMPLATES_DIR))
 
@@ -24,27 +29,56 @@ def render_email(template_name, **kwargs):
         template = template_env.get_template(template_name)
         return template.render(**kwargs)
     except Exception as e:
-        print(f"!!! CHYBA: Šablona '{template_name}' nebyla nalezena v {TEMPLATES_DIR}!")
+        logger.error(f"Šablona '{template_name}' nebyla nalezena v {TEMPLATES_DIR}: {e}")
         return None
 
 def send_email(prijemce, predmet, text_html):
-    odesilatel = "dovolena.kovarna@gmail.com"
-    heslo = "akqgszsqwxchywcq"
+    """
+    Odeslá email přes SMTP.
+    
+    Vyžaduje tyto env proměnné v .env:
+    - SMTP_EMAIL: Email odesílatele
+    - SMTP_PASSWORD: Heslo (app-specific password pro Gmail)
+    - SMTP_SERVER: SMTP server (default: smtp.gmail.com)
+    - SMTP_PORT: Port (default: 587)
+    """
+    if not settings.SMTP_EMAIL or not settings.SMTP_PASSWORD:
+        logger.error("SMTP credentials nejsou nastaveny v .env souboru")
+        return False
+    
     msg = MIMEMultipart()
-    msg['From'] = odesilatel
+    msg['From'] = settings.SMTP_EMAIL
     msg['To'] = prijemce
     msg['Subject'] = predmet
     msg.attach(MIMEText(text_html, 'html'))
+    
     try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+        with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
             server.starttls()
-            server.login(odesilatel, heslo)
+            server.login(settings.SMTP_EMAIL, settings.SMTP_PASSWORD)
             server.send_message(msg)
+        logger.info(f"Email úspěšně odeslán na {prijemce}")
+        return True
     except Exception as e:
-        print(f"Email se nepodařilo odeslat: {e}")
+        logger.error(f"Email se nepodařilo odeslat na {prijemce}: {e}")
+        return False
 
 def is_overlapping(start1: date, end1: date, start2: date, end2: date) -> bool:
     return start1 <= end2 and end1 >= start2
+
+def validate_vacation_hours(vacation_hours: float) -> None:
+    """Validace počtu hodin pro half-time zaměstnance."""
+    if vacation_hours < 1 or vacation_hours > 8:
+        raise ValueError("Počet hodin musí být mezi 1 a 8")
+    if (vacation_hours * 2) % 1 != 0:  # Check if it's a multiple of 0.5
+        raise ValueError("Počet hodin musí být násobek 0.5")
+
+def validate_vacation_dates(start_date: date, end_date: date) -> None:
+    """Validace datumů - nelze v minulosti a start <= end."""
+    if start_date < date.today():
+        raise ValueError("Nelze podávat žádost o dovolenou v minulosti")
+    if start_date > end_date:
+        raise ValueError("Datum začátku nemůže být po datu konce dovolené.")
 
 def calculate_working_days(start_date: date, end_date: date) -> int:
     """Počítá všechny dny (včetně víkendů) v daném období."""
@@ -107,8 +141,12 @@ def submit_new_vacation_request(
         employment_type: 'full_time' nebo 'half_time' (určuje jednotky)
         vacation_hours: počet hodin (jen pro half-time)
     """
-    if request_data.start_date > request_data.end_date:
-        raise ValueError("Datum začátku nemůže být po datu konce dovolené.")
+    # Validace datumů
+    validate_vacation_dates(request_data.start_date, request_data.end_date)
+    
+    # Validace hodin pro half-time
+    if employment_type == "half_time" and vacation_hours:
+        validate_vacation_hours(float(vacation_hours))
     
     # Výpočet jednotek podle typu úvazku a typu dovolené
     total_units = calculate_vacation_units(
@@ -170,7 +208,7 @@ def submit_new_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} {unit_name}.",
                 link=f"{BASE_URL}/admin"
             )
-            send_email("sklena1975@seznam.cz", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
+            send_email("funmancz10@gmail.com", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return new_request
@@ -246,8 +284,13 @@ def edit_vacation_request(
         raise ValueError(f"Žádost má status '{current_request['status']}' a nelze ji upravovat.")
     
     old_total_units = current_request['total_days']
-    if new_request_data.start_date > new_request_data.end_date:
-        raise ValueError("Datum začátku nemůže být po datu konce dovolené.")
+    
+    # Validace datumů
+    validate_vacation_dates(new_request_data.start_date, new_request_data.end_date)
+    
+    # Validace hodin pro half-time
+    if employment_type == "half_time" and vacation_hours:
+        validate_vacation_hours(float(vacation_hours))
     
     new_total_units = calculate_vacation_units(
         new_request_data.start_date, 
@@ -312,7 +355,7 @@ def edit_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} {unit_name}.",
                 link=f"{BASE_URL}/admin/requests"
             )
-            send_email("sklena1975@seznam.cz", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
+            send_email("funmancz10@gmail.com", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return vacation_repo.get_vacation_request_by_id(conn, request_id)
