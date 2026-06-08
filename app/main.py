@@ -16,6 +16,7 @@ from app.api.error_handlers import setup_error_handlers
 from app.core.config import settings
 from app.core.security import decode_access_token
 from app.utils.jinja2_filters import format_date_czech
+from app.models.schemas import CsrfSettings
 
 # Initialize Limiter
 limiter = Limiter(key_func=get_remote_address)
@@ -90,14 +91,10 @@ def create_app() -> FastAPI:
     # CSRF Protection setup
     @CsrfProtect.load_config
     def load_config():
-        csrf_settings = {
-            "secret_key": settings.CSRF_SECRET_KEY,
-            "token_location": "body",
-            "token_key": "csrf_token",
-            "cookie_samesite": "lax",
-            "cookie_secure": settings.ENV == "production",
-        }
-        return csrf_settings.items()
+        return CsrfSettings(
+            secret_key=settings.CSRF_SECRET_KEY,
+	    cookie_secure=(settings.ENV == "production")
+	)
     
     app.include_router(auth_router.router)
     app.include_router(super_admin_router.router, prefix="/super_admin")

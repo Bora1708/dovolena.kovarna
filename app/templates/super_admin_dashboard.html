@@ -139,9 +139,8 @@
                             </td>
 
                             <td> {% if user.id != payload.get('id') %}
-                                    <form method="POST" action="/super_admin/delete_user/{{ user.id }}" 
-                                          style="display:inline;" 
-                                          onsubmit="return confirm('Opravdu chcete smazat uživatele {{ user.name }}? Tím se smažou i jeho žádosti o dovolenou.');">
+                                    <form method="POST" action="/super_admin/delete_user/{{ user.id }}" style="display:inline;" 
+                                        onsubmit="event.preventDefault(); showConfirm('Opravdu chcete smazat uživatele {{ user.name }}? Tím se smažou i jeho žádosti o dovolenou.', 'Smazat').then(ok => { if(ok) this.submit(); });">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                         <button type="submit" class="reject" style="padding: 5px 10px;">Smazat</button>
                                     </form>

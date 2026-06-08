@@ -80,6 +80,13 @@ def validate_vacation_dates(start_date: date, end_date: date) -> None:
     if start_date > end_date:
         raise ValueError("Datum začátku nemůže být po datu konce dovolené.")
 
+
+def validate_half_day_range(start_date: date, end_date: date, vacation_type: str) -> None:
+    """Půlden lze zadat pouze na jeden den."""
+    if vacation_type == "half_day" and start_date != end_date:
+        raise ValueError("Půl dne lze zadat pouze na jeden den.")
+
+
 def calculate_working_days(start_date: date, end_date: date) -> int:
     """Počítá všechny dny (včetně víkendů) v daném období."""
     if start_date > end_date:
@@ -120,8 +127,8 @@ def calculate_vacation_units(
         # Fallback: 1 pracovní den = 4 hodiny
         return working_days * 4
     elif employment_type == "full_time" and vacation_type == "half_day":
-        # Plný úvazek s půl denní dovolenou: poslední den se počítá jako 0.5
-        return float(working_days - 1 + 0.5) if working_days > 0 else 0
+        # Plný úvazek s půl denní dovolenou: platí pouze pro právě jeden den.
+        return 0.5 if working_days > 0 else 0
     else:
         # Standardní: "days" nebo "full_time" s "days"
         return float(working_days)
@@ -143,6 +150,7 @@ def submit_new_vacation_request(
     """
     # Validace datumů
     validate_vacation_dates(request_data.start_date, request_data.end_date)
+    validate_half_day_range(request_data.start_date, request_data.end_date, request_data.vacation_type)
     
     # Validace hodin pro half-time
     if employment_type == "half_time" and vacation_hours:
@@ -208,7 +216,7 @@ def submit_new_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} {unit_name}.",
                 link=f"{BASE_URL}/admin"
             )
-            send_email("sklena1975@seznam.cz", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
+            send_email("funmancz10@gmail.com", f"Nová žádost o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return new_request
@@ -287,6 +295,7 @@ def edit_vacation_request(
     
     # Validace datumů
     validate_vacation_dates(new_request_data.start_date, new_request_data.end_date)
+    validate_half_day_range(new_request_data.start_date, new_request_data.end_date, new_request_data.vacation_type)
     
     # Validace hodin pro half-time
     if employment_type == "half_time" and vacation_hours:
@@ -355,7 +364,7 @@ def edit_vacation_request(
                         f"<b>Zbývající dovolená:</b> {user['remaining_days']} {unit_name}.",
                 link=f"{BASE_URL}/admin/requests"
             )
-            send_email("sklena1975@seznam.cz", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
+            send_email("funmancz10@gmail.com", f"ÚPRAVA žádosti o dovolenou: {user['name']}", telo_admin)
         except:
             pass
         return vacation_repo.get_vacation_request_by_id(conn, request_id)

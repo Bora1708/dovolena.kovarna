@@ -19,7 +19,7 @@
             {% endif %}
             <p>Původní termín: {{ request_data.start_date | date_cz }} – {{ request_data.end_date | date_cz }} 
                 ({% set unit_display = "h" if request_data.vacation_type == 'hours' else ("½ dne" if request_data.vacation_type == 'half_day' else "dní") %}
-                {{ request_data.total_days }} {{ unit_display }})</p>
+                {% if request_data.vacation_type == 'half_day' %}½ dne{% else %}{{ request_data.total_days }} {{ unit_display }}{% endif %})</p>
             <p>
                 {% if request_data.vacation_type == 'hours' %}
                     Zbývající dovolená: {{ remaining_days }} hodin.
@@ -48,7 +48,7 @@
                         <input type="date" id="start_date" name="start_date" value="{{ request_data.start_date }}" required>
                     </div>
                     <br>
-                    <div>
+                    <div id="end_date_container">
                         <label for="end_date">Datum konce:</label>
                         <input type="date" id="end_date" name="end_date" value="{{ request_data.end_date }}" required>
                     </div>
@@ -62,6 +62,37 @@
                     </div>
                     <br>
                 {% endif %}
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const startDateInput = document.getElementById('start_date');
+                        const endDateInput = document.getElementById('end_date');
+                        const vacationTypeInputs = document.querySelectorAll('input[name="vacation_type"]');
+
+                        if (!startDateInput || !endDateInput || !vacationTypeInputs.length) {
+                            return;
+                        }
+
+                        function updateEndDateForHalfDay() {
+                            const selectedType = document.querySelector('input[name="vacation_type"]:checked').value;
+                            if (selectedType === 'half_day') {
+                                endDateInput.value = startDateInput.value;
+                                endDateInput.readOnly = true;
+                                endDateInput.required = true;
+                                endDateInput.parentElement.style.opacity = '0.6';
+                                endDateInput.parentElement.querySelector('label').textContent = 'Datum konce (stejný jako začátek):';
+                            } else {
+                                endDateInput.readOnly = false;
+                                endDateInput.required = true;
+                                endDateInput.parentElement.style.opacity = '1';
+                                endDateInput.parentElement.querySelector('label').textContent = 'Datum konce:';
+                            }
+                        }
+
+                        vacationTypeInputs.forEach(radio => radio.addEventListener('change', updateEndDateForHalfDay));
+                        startDateInput.addEventListener('change', updateEndDateForHalfDay);
+                        updateEndDateForHalfDay();
+                    });
+                </script>
                 <div style="display: flex; justify-content: space-between; margin-top: 20px;">
                     
                     <button type="submit" class="submit">Uložit Upravenou Žádost</button>

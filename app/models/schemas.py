@@ -77,3 +77,13 @@ class VacationDisplay(VacationRequest):
     
     class Config:
         from_attributes = True
+
+#
+# KONFIGURACE OCHRANY (CSRF)
+#
+class CsrfSettings(BaseModel):
+    secret_key: str
+    token_location: str = "body"
+    token_key: str = "csrf_token"
+    cookie_samesite: str = "lax"
+    cookie_secure: bool = False

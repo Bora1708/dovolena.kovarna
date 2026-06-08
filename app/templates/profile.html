@@ -46,7 +46,7 @@
                         <input type="date" id="start_date" name="start_date" required>
                     </div>
                     <br>
-                    <div>
+                    <div id="end_date_container">
                         <label for="end_date">Datum konce (včetně):</label>
                         <input type="date" id="end_date" name="end_date" required>
                     </div>
@@ -62,6 +62,37 @@
                 <br>
                 <button type="submit">Odeslat žádost</button>
             </form>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const startDateInput = document.getElementById('start_date');
+                    const endDateInput = document.getElementById('end_date');
+                    const vacationTypeInputs = document.querySelectorAll('input[name="vacation_type"]');
+
+                    if (!startDateInput || !endDateInput || !vacationTypeInputs.length) {
+                        return;
+                    }
+
+                    function updateEndDateForHalfDay() {
+                        const selectedType = document.querySelector('input[name="vacation_type"]:checked').value;
+                        if (selectedType === 'half_day') {
+                            endDateInput.value = startDateInput.value;
+                            endDateInput.readOnly = true;
+                            endDateInput.required = true;
+                            endDateInput.parentElement.style.opacity = '0.6';
+                            endDateInput.parentElement.querySelector('label').textContent = 'Datum konce (stejný jako začátek):';
+                        } else {
+                            endDateInput.readOnly = false;
+                            endDateInput.required = true;
+                            endDateInput.parentElement.style.opacity = '1';
+                            endDateInput.parentElement.querySelector('label').textContent = 'Datum konce (včetně):';
+                        }
+                    }
+
+                    vacationTypeInputs.forEach(radio => radio.addEventListener('change', updateEndDateForHalfDay));
+                    startDateInput.addEventListener('change', updateEndDateForHalfDay);
+                    updateEndDateForHalfDay();
+                });
+            </script>
         </div>
     
     </div> 
@@ -92,7 +123,11 @@
                             <td>{{ req.end_date | date_cz }}</td>
                             <td>
                                 {% set unit_display = "h" if user.employment_type == 'half_time' else ("½ dne" if req.vacation_type == 'half_day' else "dní") %}
-                                {{ req.total_days }} {{ unit_display }}
+                                {% if req.vacation_type == 'half_day' %}
+                                    ½ dne
+                                {% else %}
+                                    {{ req.total_days }} {{ unit_display }}
+                                {% endif %}
                             </td>
                             <td>
                                 {% if req.status == 'Approved' %}
@@ -106,8 +141,9 @@
                             <td> 
                                 {% if req.status == 'Pending' %}
                                     <a href="/employee/edit/{{ req.id }}" 
-                                       class="btn" 
-                                       style="padding: 5px 10px; font-size: 0.9em; text-decoration: none;"
+                                    class="btn" 
+                                    style="padding: 5px 10px; font-size: 0.9em; text-decoration: none;"
+                                    onclick="event.preventDefault(); showConfirm('Přejete si upravit tuto žádost?').then(ok => { if(ok) window.location.href=this.href; })"
                                     >Upravit</a>
                                 {% else %}
                                     -

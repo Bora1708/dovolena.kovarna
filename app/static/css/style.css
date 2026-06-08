@@ -198,7 +198,8 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="number"],
-input[type="date"] {
+input[type="date"],
+select {
     width: 100%;
     padding: 10px;
     margin: 5px 0 15px 0;
@@ -210,9 +211,94 @@ input[type="date"] {
     transition: border-color 0.2s;
 }
 
-input:focus {
+input:focus,
+select:focus {
     border-color: var(--color-accent);
     outline: none;
+}
+
+/* Styly pro Choices.js */
+.choices {
+    margin: 5px 0 15px 0 !important;
+}
+
+.choices[data-type*="select-one"] {
+    width: 100% !important;
+}
+
+.choices[data-type*="select-one"] .choices__inner {
+    background-color: var(--color-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    padding: 10px !important;
+    color: var(--color-text-light) !important;
+    font-size: 14px !important;
+    min-height: auto !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+}
+
+.choices[data-type*="select-one"].is-focused .choices__inner,
+.choices__inner:focus-within {
+    border-color: var(--color-accent) !important;
+    outline: none !important;
+}
+
+.choices__list--single {
+    padding: 0 !important;
+}
+
+.choices__item--selectable {
+    color: var(--color-text-light) !important;
+    padding: 8px !important;
+}
+
+.choices__item--selectable:hover {
+    background-color: rgba(168, 139, 251, 0.3) !important;
+    color: var(--color-text-light) !important;
+}
+
+.choices__item--selected {
+    background-color: transparent !important;
+    border-color: transparent !important;
+    color: var(--color-text-light) !important;
+}
+
+.choices__button {
+    background-image: url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%2212%22 viewBox=%220 0 12 12%22%3E%3Cpath fill=%22%23A88BFB%22 d=%22M11.354 11.354L.646.646m10.708 0L.646 11.354%22/%3E%3C/svg%3E') !important;
+}
+
+.choices__placeholder {
+    color: var(--color-text-muted) !important;
+}
+
+.choices__list--dropdown {
+    background-color: var(--color-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    color: var(--color-text-light) !important;
+    z-index: 10 !important;
+    min-width: 100% !important;
+}
+
+.choices__list--dropdown .choices__item {
+    color: var(--color-text-light) !important;
+    padding: 10px !important;
+    background-color: var(--color-secondary) !important;
+}
+
+.choices__list--dropdown .choices__item--selectable:hover {
+    background-color: rgba(168, 139, 251, 0.5) !important;
+    color: var(--color-text-light) !important;
+}
+
+.choices__input {
+    background-color: transparent !important;
+    color: var(--color-text-light) !important;
+}
+
+.choices[data-type*="select-one"] .choices__input {
+    display: none !important;
 }
 
 button, .btn {
@@ -278,6 +364,37 @@ th {
     -webkit-overflow-scrolling: touch; 
 }
 
+.employee-actions {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 1px;
+}
+
+.compact-action-form {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.remaining-days-input {
+    width: 90px;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: rgba(255, 255, 255, 0.95);
+}
+
+.employee-actions td,
+.employee-actions th {
+    white-space: nowrap;
+}
+
 /* Styly pro login stránku*/
 
 .login-page {
@@ -314,4 +431,144 @@ h3 {
 
 p {
     margin-bottom: 10px;
+}
+
+/* =======================================================
+   6. Toast Notifikace (Vyskakovací okna)
+   ======================================================= */
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.toast {
+    background: rgba(30, 58, 138, 0.9);
+    backdrop-filter: blur(var(--blur-intensity));
+    color: var(--color-text-light);
+    padding: 15px 25px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-heavy);
+    transform: translateX(150%); /* Schované vpravo */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease-out; /* Mírný "bouncy" efekt */
+    opacity: 0;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Dynamické barevné proužky podle typu zprávy */
+.toast-success {
+    border-left: 5px solid limegreen;
+}
+
+.toast-error {
+    border-left: 5px solid tomato;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* =======================================================
+   7. Skleněná modální okna
+   ======================================================= */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-content {
+    background: rgba(30, 58, 138, 0.5);
+    backdrop-filter: blur(var(--blur-intensity));
+    border: 1px solid var(--border-color);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: var(--shadow-heavy);
+    transform: scale(0.8);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-overlay.active .modal-content {
+    transform: scale(1);
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 25px;
+}
+
+.modal-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    border: none;
+    transition: transform 0.2s;
+}
+
+.modal-btn:hover { transform: scale(1.05); }
+.modal-confirm { background: #cd5c5c; color: white; } /* Červená pro smazání/zamítnutí */
+.modal-cancel { background: transparent; border: 1px solid var(--border-color); color: white; }
+
+/* =======================================================
+   8. Media queries
+   ======================================================= */
+
+@media (max-width: 768px) {
+    .toast-container {
+        /* Místo držení se vpravo ukotvíme kontejner i zleva, aby se roztáhl */
+        right: 20px;
+        left: 20px;
+        bottom: 20px;
+    }
+
+    .toast {
+        /* Notifikace teď zabere 100 % šířky svého kontejneru */
+        width: 100%; 
+        box-sizing: border-box; /* Zajistí, aby padding nerozbil šířku */
+        padding: 12px 20px; /* Na mobilu můžeme trošku zmenšit vnitřní okraje */
+        font-size: 14px; /* O něco menší písmo pro menší displeje */
+    }
+
+    .modal-content {
+        padding: 20px; /* Menší vnitřní okraje, aby zbylo víc místa na text */
+        width: 95%;    /* Na úplně malých mobilech využijeme plochu na maximum */
+    }
+
+    .modal-buttons {
+        flex-direction: column; /* Tlačítka pod sebou, aby se na ně lépe klikalo palcem */
+        gap: 10px;
+    }
+
+    .modal-btn {
+        width: 100%; /* Tlačítka přes celou šířku jsou na mobilu pohodlnější */
+    }
 }

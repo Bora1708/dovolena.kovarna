@@ -105,6 +105,23 @@ def update_user_remaining_days(conn: sqlite3.Connection, user_id: int, days_chan
     
     return cursor.rowcount == 1
 
+
+def set_user_remaining_days(conn: sqlite3.Connection, user_id: int, new_remaining_days: float) -> bool:
+    if new_remaining_days < 0:
+        return False
+
+    user = get_user_by_id(conn, user_id)
+    if not user:
+        return False
+
+    cursor = conn.cursor()
+    query = "UPDATE users SET remaining_days = ? WHERE id = ?"
+    cursor.execute(query, (new_remaining_days, user_id))
+    conn.commit()
+
+    return cursor.rowcount == 1 or get_user_by_id(conn, user_id) is not None
+
+
 def update_user_roles(conn: sqlite3.Connection, user_id: int, is_admin: bool, is_super_admin: bool) -> bool:
     if is_super_admin:
         is_admin = False

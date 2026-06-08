@@ -5,7 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Záznam Dovolených{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='/images/favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css">
+    <style>
+        /* Přepsání výchozích stylů Choices.js */
+        .choices[data-type*="select-one"] {
+            display: block;
+            width: 100%;
+        }
+        .choices[data-type*="select-one"] .choices__inner {
+            background-color: var(--color-secondary) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 6px !important;
+            padding: 10px !important;
+            min-height: auto !important;
+            height: auto !important;
+        }
+        .choices[data-type*="select-one"] .choices__button {
+            display: none;
+        }
+    </style>
+    <!-- <link rel="icon" type="image/x-icon" href="{{ url_for('static', path='/images/favicon.ico') }}"> -->
 </head>
 <body>
     
@@ -44,15 +63,40 @@
         {% set success_msg = request.query_params.get('success') %}
 
         {% if error_msg %}
-            <div class="alert error"><strong>CHYBA:</strong> {{ error_msg | replace('_', ' ') }}</div>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast("{{ error_msg | replace('_', ' ') }}", "error");
+                });
+            </script>
         {% endif %}
         {% if success_msg %}
-            <div class="alert success"><strong>ÚSPĚCH:</strong> {{ success_msg | replace('_', ' ') }}</div>
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    showToast("{{ success_msg | replace('_', ' ') }}", "success");
+                });
+            </script>
         {% endif %}
         
         {% block content %}
         {% endblock %}
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    <script src="{{ url_for('static', path='/js/app.js') }}"></script>
+    <script>
+        // Inicializuj Choices.js na všech selectech při loadování stránky
+        document.addEventListener('DOMContentLoaded', function() {
+            const selects = document.querySelectorAll('select');
+            selects.forEach(select => {
+                new Choices(select, {
+                    itemSelectText: 'Klikni pro výběr',
+                    noResultsText: 'Žádné výsledky',
+                    noChoicesText: 'Žádné volby',
+                    searchPlaceholderValue: 'Hledat...',
+                });
+            });
+        });
+    </script>
 </body>
 </html>

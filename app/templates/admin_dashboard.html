@@ -33,7 +33,7 @@
                 <input type="password" id="password" name="password" required><br>
 
                 <label for="employment_type">Typ úvazku:</label>
-                <select name="employment_type" id="employment_type" required style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                <select name="employment_type" id="employment_type" required>
                     <option value="full_time">Plný úvazek</option>
                     <option value="half_time">Poloviční úvazek</option>
                 </select>
@@ -88,7 +88,11 @@
                                 <td>{{ req.start_date | date_cz }} - {{ req.end_date | date_cz }}</td>
                                 <td>
                                     {% set unit_display = "h" if req.vacation_type == 'hours' else ("½ dne" if req.vacation_type == 'half_day' else "dní") %}
-                                    {{ req.total_days }} {{ unit_display }}
+                                    {% if req.vacation_type == 'half_day' %}
+                                        ½ dne
+                                    {% else %}
+                                        {{ req.total_days }} {{ unit_display }}
+                                    {% endif %}
                                 </td>
                                 <td>
                                     <form method="POST" action="/admin/process_request/{{ req.id }}" style="display:inline; margin-right: 5px;">
@@ -172,10 +176,16 @@
                                     {{ emp.remaining_days }} dní
                                 {% endif %}
                             </td>
-                            <td>
-                                <form method="POST" action="/admin/delete_user/{{ emp.id }}" style="display:inline;" onsubmit="return confirm('Opravdu chcete smazat uživatele {{ emp.name }}? Tím se smažou i jeho žádosti o dovolenou.');">
+                            <td class="employee-actions">
+                                <form method="POST" action="/admin/update_remaining_days/{{ emp.id }}" class="compact-action-form">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                    <button type="submit" class="reject" style="padding: 5px 10px;">Smazat</button>
+                                    <input type="number" name="remaining_days" step="0.1" min="0" value="{{ emp.remaining_days }}" class="remaining-days-input" title="Nový zůstatek {{ 'hodin' if emp.employment_type == 'half_time' else 'dnů' }}">
+                                    <button type="submit" class="submit">Uložit</button>
+                                </form>
+                                <form method="POST" action="/admin/delete_user/{{ emp.id }}" class="compact-action-form"
+                                    onsubmit="event.preventDefault(); showConfirm('Opravdu chcete smazat uživatele {{ emp.name }}? Tím se smažou i jeho žádosti o dovolenou.', 'Smazat').then(ok => { if(ok) this.submit(); });">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                    <button type="submit" class="reject">Smazat</button>
                                 </form>
                             </td>
                         </tr>

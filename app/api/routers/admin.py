@@ -104,6 +104,40 @@ async def create_employee_submit(
 
 
 #
+# AKTUALIZACE ZŮSTATKU DOVOLENÉ U ZAMĚSTNANCE
+#
+@router.post("/update_remaining_days/{user_id}", status_code=status.HTTP_303_SEE_OTHER)
+async def update_employee_remaining_days(
+    request: Request,
+    conn: sqlite3.Connection = Depends(get_db_conn),
+    csrf_protect: CsrfProtect = Depends(),
+    payload: Dict[str, Any] = Depends(get_current_admin_payload),
+    user_id: int = Path(..., gt=0),
+    remaining_days: float = Form(...)
+):
+    await csrf_protect.validate_csrf(request)
+
+    user_to_update = user_repo.get_user_by_id(conn, user_id)
+    if not user_to_update:
+        return RedirectResponse(url="/admin?error=Uživatel_nebyl_nalezen.", status_code=status.HTTP_303_SEE_OTHER)
+
+    if user_to_update.get('is_admin') == 1 or user_to_update.get('is_super_admin') == 1:
+        return RedirectResponse(url="/admin?error=Nelze_upravovat_administrátory.", status_code=status.HTTP_303_SEE_OTHER)
+
+    if remaining_days < 0:
+        return RedirectResponse(url="/admin?error=Zůstatek_nesmí_být_záporný.", status_code=status.HTTP_303_SEE_OTHER)
+
+    updated = user_repo.set_user_remaining_days(conn, user_id, remaining_days)
+    if not updated:
+        return RedirectResponse(url="/admin?error=Změnu_zůstatku_nebylo_možné_provést.", status_code=status.HTTP_303_SEE_OTHER)
+
+    return RedirectResponse(
+        url=f"/admin?success=Zůstatek_zaměstnance_byl_aktualizován.",
+        status_code=status.HTTP_303_SEE_OTHER
+    )
+
+
+#
 # MAZÁNÍ UŽIVATELE
 #
 @router.post("/delete_user/{user_id}", status_code=status.HTTP_303_SEE_OTHER)
